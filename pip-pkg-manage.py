@@ -5,6 +5,7 @@ SYS_DIR = "/usr/lib/python3"
 
 import os
 import json
+import click
 
 def executeCommand(command: str) -> str:
     stream = os.popen(command) # open a pip from the command line
@@ -120,7 +121,7 @@ def showUpgradablePackages():
     if count == 0:
         print("Python packages are up to date. No user installation needs upgrade.")
 
-def createGraphvizOfPackageDependency(dotFileName="graph_test.dot"):
+def createGraphvizOfPackageDependency(filename="graph"):
     """ Using Graphviz, generate a graph illustrating dependency relations 
     of all installed Python packages. System installations are depicted by 
     red nodes, while user installations are depicted by blue nodes. 
@@ -153,22 +154,46 @@ def createGraphvizOfPackageDependency(dotFileName="graph_test.dot"):
         
     dotString += "}"
 
+    dotFileName = filename + ".dot"
+    svgFileName = filename + ".svg"
     with open(dotFileName, "w") as file:
         file.write(dotString)
-    imageFileName = f"{dotFileName.split('.')[0]}.svg"
-    os.system(f"dot {dotFileName} -Tsvg > {imageFileName}")
-    print(f"Illustration of package dependencies is generated. View file '{imageFileName}'.")
+    os.system(f"dot {dotFileName} -Tsvg > {svgFileName}")
+    print(f"Illustration of package dependencies is generated. View file '{svgFileName}'.")
 
+
+@click.group()
+def main():
+    pass
+
+@main.command()
+@click.option('--file', default="pip_packages.json", help="File to store package details")
+def rebuild(file):
+    """ Rebuild index of packages
+    (Compulsory. You need to run this for the FIRST time, or after you installed/uninstall packages)
+    """
+    rebuildIndex(file)
+    click.echo(f"Packages have been successfully indexed in file '{file}'")
+    click.echo(f"Run 'rebuild' next time only after you installed/uninstalled package(s).")
+
+@main.command()
+@click.option('--file', default="graph", help="Name of image file to show package dependencies")
+def graph(file):
+    """ Generate illustrative graph of package dependency 
+    """
+    createGraphvizOfPackageDependency(file)
+
+@main.command()
+def update():
+    """ List upgradable packages
+    """
+    showUpgradablePackages()
+
+@main.command()
+def upgrade():
+    """ Upgrade packages
+    """
+    upgradePackages()
 
 if __name__ == "__main__":
-    # Step 1: Rebuild the index (COMPULSORY. You need to run this for the FIRST time, or after you installed/uninstall packages)
-    # rebuildIndex()
-
-    # Step 2: Generate image of package dependency (optional, if you wish to see the graph)
-    createGraphvizOfPackageDependency()
-
-    # Step 3: Show upgradable packages installed in user's directory (optional, if you want to view upgradable packages)
-    # showUpgradablePackages()
-
-    # Step 4: Show upgradable packages installed in user's directory (COMPULSORY if you want to do the actual upgrade!)
-    # upgradePackages()
+    main()
