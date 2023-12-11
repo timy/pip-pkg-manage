@@ -157,7 +157,7 @@ def createGraphvizOfPackageDependency(dotFileName="graph_test.dot"):
         file.write(dotString)
     imageFileName = f"{dotFileName.split('.')[0]}.svg"
     os.system(f"dot {dotFileName} -Tsvg > {imageFileName}")
-    print(f"Illustration of package dependencies are geneated. View file '{imageFileName}'.")
+    print(f"Illustration of package dependencies is generated. View file '{imageFileName}'.")
 
 
 if __name__ == "__main__":
